@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-2.0.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <group>
+        <name>hzbootstrap-storejs-${user.name}</name>
+        <password>secret</password>
+    </group>
+    <network>
+        <port auto-increment="true">9350</port>
+        <join>
+            <multicast enabled="false">
+                <multicast-group>224.2.2.3</multicast-group>
+                <multicast-port>54327</multicast-port>
+            </multicast>
+            <tcp-ip enabled="true">
+                <!-- Do not enter addresses here. They are populated by the Hazelcast boostrap process -->
+            </tcp-ip>
+        </join>
+        <interfaces enabled="false">
+            <interface>0.0.0.0</interface>
+        </interfaces>
+    </network>
+    <map name="default">
+        <map-store enabled="true">
+            <!-- Normally there is a class-name or factory-class-name element here. We are
+                 providing that value programmatically from Spring, so we don't provide one
+                 here. This has a side effect of receiving some exceptions during
+                 the integration tests. The integration tests just test Hazelcast and do not
+                 want any persistence to be configured. We could run with two different config
+                 files, but that seems a bit redundant. As long as the tests succeed, all is
+                 well.
+
+                 i.e. exception: java.lang.IllegalArgumentException: ClassName cannot be null!
+            -->
+            <write-delay-seconds>0</write-delay-seconds>
+            <properties>
+                <!-- mapstore property contains the Spring names of map store implementations -->
+                <property name="mapstore">esMapStore,memMapStore</property>
+                <property name="maploader">esMapStore</property>
+            </properties>
+        </map-store>
+    </map>
+    <map name="test-mapstore">
+        <map-store enabled="true">
+            <write-delay-seconds>0</write-delay-seconds>
+            <properties>
+                <!-- mapstore property contains the Spring names of map store implementations -->
+                <property name="mapstore">memMapStore</property>
+                <property name="maploader">memMapStore</property>
+            </properties>
+        </map-store>
+    </map>
+    <map name="test-elasticsearch">
+        <map-store enabled="true">
+            <write-delay-seconds>0</write-delay-seconds>
+            <properties>
+                <!-- mapstore property contains the Spring names of map store implementations -->
+                <property name="mapstore">esMapStore</property>
+                <property name="maploader">esMapStore</property>
+            </properties>
+        </map-store>
+    </map>
+
+</hazelcast>

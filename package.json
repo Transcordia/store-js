@@ -1,0 +1,14 @@
+{
+    "name": "${project.groupId}:${project.artifactId}",
+    "version": "${project.version}",
+    "description": "Provides a CommonJS wrapper around Hazelcast/Elastic Search functions.",
+    "keywords": ["ringo", "ringojs", "hazelcast", "elastic search", "elasticsearch"],
+    "maintainers": [
+        {
+            "name": "Jim Cook",
+            "email": "jcook@transcordia.com",
+            "web": "http://transcordia.com/"
+        }
+    ],
+    "main": "./lib/main.js"
+}

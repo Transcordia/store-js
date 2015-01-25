@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:hz="http://www.hazelcast.com/schema/config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                            http://www.springframework.org/schema/util
+                            http://www.springframework.org/schema/util/spring-util-2.0.xsd
+                            http://www.hazelcast.com/schema/config
+                            http://www.hazelcast.com/schema/config/hazelcast-spring.xsd
+                            ">
+
+
+    <bean id="log4jInitializer"
+          class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="org.springframework.util.Log4jConfigurer.initLogging"/>
+        <property name="arguments">
+            <list>
+                <value>classpath:log4j.properties</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <!-- *************************************************************************************** -->
+    <!-- Elastic Search Configuration                                                            -->
+    <!-- *************************************************************************************** -->
+
+    <bean id="elasticSearchConfiguration"
+          class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="localOverride" value="true"/>
+        <property name="properties">
+            <props>
+                <prop key="cluster.name">esBootstrap-storejs-${user.name}</prop>
+                <prop key="path.home">${build.directory}/data</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="esServer" class="com.transcordia.platform.elasticsearch.ElasticSearchServer"
+          init-method="start" destroy-method="stop">
+        <constructor-arg ref="elasticSearchConfiguration"/>
+    </bean>
+
+
+    <!-- *************************************************************************************** -->
+    <!-- Hazelcast Configuration                                                            -->
+    <!-- *************************************************************************************** -->
+
+    <bean id="hzServer" class="com.transcordia.platform.hazelcast.HazelcastBootstrap"
+          init-method="init" destroy-method="destroy">
+        <constructor-arg value="#{esServer.client}"/>
+        <property name="mapStoreFactory" ref="mapStoreFactory" />
+    </bean>
+
+    <bean id="mapStoreFactory" class="com.transcordia.platform.hazelcast.persistence.DelegatingMapStoreFactory" />
+
+    <!-- Beans marked with Prototype scope. This will cause Spring to create a new instance
+         each time the bean is referenced.
+    -->
+    <bean id="memMapStore" class="com.transcordia.platform.hazelcast.MockInMemoryMapPersistence" scope="prototype" />
+
+    <bean id="esMapStore" class="com.transcordia.platform.hazelcast.persistence.elasticsearch.ElasticSearchMapPersistence" scope="prototype">
+        <property name="esClient" value="#{esServer.client}" />
+    </bean>
+
+</beans>
