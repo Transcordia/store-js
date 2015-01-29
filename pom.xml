@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.ejs</groupId>
@@ -9,7 +11,7 @@
 
     <name>StoreJS</name>
     <description>
-      A commonjs implementation of a storage tier combining hazelcast and elasticsearch
+        A commonjs implementation of a storage tier combining hazelcast and elasticsearch
     </description>
 
     <properties>
@@ -35,6 +37,13 @@
         <connection>scm:git:git@github.com:Transcordia/store-js.git</connection>
         <developerConnection>scm:git:git@github.com:Transcordia/store-js.git</developerConnection>
     </scm>
+
+    <licenses>
+        <license>
+            <url>http://choosealicense.com/licenses/mit/</url>
+            <name>MIT License</name>
+        </license>
+    </licenses>
 
     <developers>
         <developer>
@@ -210,14 +219,15 @@
                         <phase>test</phase>
                         <configuration>
                             <target unless="maven.test.skip">
-                                <java classname="org.ringojs.tools.launcher.Main" fork="true" failonerror="yes">
-                                    <jvmarg value="-Dringo.home=lib" />
-                                    <jvmarg value="-Dringo.classpath=" />
-                                    <jvmarg value="-Dringo.verbose=true" />
+                                <java classname="org.ringojs.tools.launcher.Main" fork="true"
+                                      failonerror="yes">
+                                    <jvmarg value="-Dringo.home=lib"/>
+                                    <jvmarg value="-Dringo.classpath="/>
+                                    <jvmarg value="-Dringo.verbose=true"/>
                                     <!--<jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" />-->
                                     <!--<arg value="-d" />-->
-                                    <arg value="${basedir}/src/test/js/integration.js" />
-                                    <classpath refid="maven.test.classpath" />
+                                    <arg value="${basedir}/src/test/js/integration.js"/>
+                                    <classpath refid="maven.test.classpath"/>
                                 </java>
                             </target>
                         </configuration>
