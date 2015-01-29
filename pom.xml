@@ -36,6 +36,14 @@
         <developerConnection>scm:git:git@github.com:Transcordia/store-js.git</developerConnection>
     </scm>
 
+    <developers>
+        <developer>
+            <url>https://github.com/oravecz</url>
+            <name>Jim Cook</name>
+            <email>jcook@transcordia.com</email>
+        </developer>
+    </developers>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
