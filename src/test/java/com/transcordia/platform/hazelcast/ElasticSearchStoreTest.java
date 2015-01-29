@@ -75,11 +75,7 @@ public class ElasticSearchStoreTest extends AbstractTestNGSpringContextTests {
             String value = String.format("{\"%s\":\"%.0f\"}", key, Math.random() * 10000);
             _mapHazel.put(key, value);
             localMap.put(key, value);
-        }
-
-        // Evict all ids from Hazelcast
-        for (int i = 0; i < 1000; i++) {
-            String key = "key" + i;
+            // Can't test loads from es if key is in hazelcast
             _mapHazel.evict(key);
         }
 

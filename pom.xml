@@ -13,16 +13,22 @@
     </description>
 
     <properties>
-        <spring-version>3.1.1.RELEASE</spring-version>
-        <slf4j-version>1.6.4</slf4j-version>
-        <log4j-version>1.2.16</log4j-version>
+        <spring-version>4.1.4.RELEASE</spring-version>
+        <slf4j-version>1.7.10</slf4j-version>
+        <log4j-version>1.2.17</log4j-version>
         <aws-version>1.2.2</aws-version>
-        <ringojs-version>0.9.0-alpha-5</ringojs-version>
-        <elasticsearch-version>0.19.2</elasticsearch-version>
-        <hazelcast-version>2.0.3</hazelcast-version>
+        <ringojs-version>0.11.0</ringojs-version>
+        <elasticsearch-version>1.4.2</elasticsearch-version>
+        <hazelcast-version>3.4</hazelcast-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+
+    <prerequisites>
+        <maven>3.0.4</maven>
+    </prerequisites>
+
+    <url>https://github.com/Transcordia/store-js</url>
 
     <scm>
         <url>https://github.com/Transcordia/store-js</url>
@@ -41,15 +47,15 @@
 
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.2.1</version>
+                <groupId>external.atlassian.jgitflow</groupId>
+                <artifactId>jgitflow-maven-plugin</artifactId>
+                <version>1.0-m4.3</version>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>2.4.1</version>
+                <version>2.6.1</version>
                 <configuration>
                     <filesets>
                         <fileset>
@@ -60,21 +66,8 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.6</version>
+                <version>1.8</version>
                 <executions>
                     <execution>
                         <phase>test</phase>
@@ -84,6 +77,8 @@
                                     <jvmarg value="-Dringo.home=lib" />
                                     <jvmarg value="-Dringo.classpath=" />
                                     <jvmarg value="-Dringo.verbose=true" />
+                                    <!--<jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005" />-->
+                                    <!--<arg value="-d" />-->
                                     <arg value="${basedir}/src/test/js/integration.js" />
                                     <classpath refid="maven.test.classpath" />
                                 </java>
@@ -136,14 +131,6 @@
             <artifactId>hazelcast</artifactId>
             <version>${hazelcast-version}</version>
         </dependency>
-
-<!--
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-spring</artifactId>
-            <version>${hazelcast-version}</version>
-        </dependency>
--->
 
         <!-- Spring Framework 3 -->
 
@@ -219,7 +206,7 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.4</version>
+            <version>6.8.17</version>
             <scope>test</scope>
         </dependency>
 
@@ -237,11 +224,88 @@
         </dependency>
 
         <dependency>
-            <groupId>org.ringojs</groupId>
+            <groupId>io.ejs</groupId>
             <artifactId>ringojs</artifactId>
             <version>${ringojs-version}</version>
             <scope>test</scope>
         </dependency>
 
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.5</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

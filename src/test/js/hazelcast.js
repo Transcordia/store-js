@@ -29,6 +29,7 @@ exports.testGetMap = function() {
 
 exports.testMapPut = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
     // When data is put into a map, it should return the prior value or null if not found.
     var priorValue = map.put('123', fred);
@@ -43,9 +44,22 @@ exports.testMapPut = function() {
     assert.equal(fred.age, oldFred.age);
 };
 
+exports.testCacheEvict = function() {
+    var map = store.getMap('index1', 'type1');
+    map.clear();
+
+    map.put('123', fred);
+    assert.isTrue(map.hasKey('123'));
+
+    // Evict key
+    map.evict('123');
+    assert.isFalse(map.hasKey('123'));
+};
+
 
 exports.testMapGet = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
     map.put('123', fred);
 
@@ -62,9 +76,10 @@ exports.testMapGet = function() {
 
 exports.testMapRemove = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
-    map.put('123', 'fred');
-    map.put('321', 'barney');
+    map.put('123', fred);
+    map.put('321', barney);
 
     var oldFred = map.get('123');
     assert.isNotNull(oldFred);
@@ -85,9 +100,10 @@ exports.testMapRemove = function() {
 
 exports.testMapEvict = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
-    map.put('123', 'fred');
-    map.put('321', 'barney');
+    map.put('123', fred);
+    map.put('321', barney);
 
     var oldFred = map.get('123');
     assert.isNotNull(oldFred);
@@ -95,23 +111,16 @@ exports.testMapEvict = function() {
     // evict it from the cache
     map.evict('123');
 
-    // Make sure it is gone,
-    oldFred = map.get('123');
-    assert.isNull(oldFred);
-
-    // Make sure the other is still there
-    var oldBarney = map.get('321');
-    assert.isNotNull(oldBarney);
-
     assert.equal(1, map.size());
 };
 
 exports.testTimeToLive = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
     // Fred is added with a 3 second TTL, while barney has a 10 second TTL
-    map.put('123', 'fred', 3, 'SECONDS');
-    map.put('321', 'barney', 10000, 'MILLISECONDS');
+    map.put('123', fred, 3, 'SECONDS');
+    map.put('321', barney, 10000, 'MILLISECONDS');
 
     // Make sure they are still there
     var oldFred = map.get('123');
@@ -123,8 +132,8 @@ exports.testTimeToLive = function() {
     java.lang.Thread.sleep(5000);
 
     // Make sure fred is gone,
-    oldFred = map.get('123');
-    assert.isNull(oldFred);
+    var found = map.hasKey('123');
+    assert.isFalse(found);
 
     // Barney should remain
     oldBarney = map.get('321');
@@ -134,12 +143,13 @@ exports.testTimeToLive = function() {
     java.lang.Thread.sleep(6000);
 
     // Barney should now be evicted
-    oldBarney = map.get('321');
-    assert.isNull(oldBarney);
+    found = map.hasKey('321');
+    assert.isFalse(found);
 };
 
 exports.testPutWithoutId = function() {
     var map = store.getMap('index1', 'type1');
+    map.clear();
 
     // Make sure map is empty
     map.clear();
@@ -178,6 +188,7 @@ exports.testPutWithoutId = function() {
 
 exports.testMapListenerNoCallbacks = function() {
     var map = store.getMap('index1', 'type2');
+    map.clear();
 
     try {
         map.addEntryListener({
@@ -193,6 +204,7 @@ exports.testMapListenerNoCallbacks = function() {
 
 exports.testMapListenerAddEntry = function() {
     var map = store.getMap('index1', 'type3');
+    map.clear();
 
     var result = false;
 
@@ -220,10 +232,12 @@ exports.testMapListenerAddEntry = function() {
     java.lang.Thread.sleep(1000);
     assert.isTrue(result);
     map.remove('1');
+    map.clearEntryListeners();
 };
 
 exports.testMapListenerRemoveEntry = function() {
     var map = store.getMap('index1', 'type4');
+    map.clear();
 
     var result = false;
 
@@ -232,9 +246,9 @@ exports.testMapListenerRemoveEntry = function() {
         name: module.id,
         entryRemoved: function(entry) {
             try {
-                assert.equal(typeof entry.value, 'object');
-                assert.equal(entry.value.name, 'fred');
-                assert.isNull(entry.oldValue);
+                assert.equal(typeof entry.oldValue, 'object');
+                assert.equal(entry.oldValue.name, 'fred');
+                assert.isNull(entry.value);
                 result = true;
             } catch(e) {
                 log.info('Error: ', e);
@@ -246,12 +260,15 @@ exports.testMapListenerRemoveEntry = function() {
     assert.isFalse(result);
 
     map.remove('1');
-    java.lang.Thread.sleep(1000);
+    java.lang.Thread.sleep(5000);
+
     assert.isTrue(result);
+    map.clearEntryListeners();
 };
 
 exports.testMapListenerUpdateEntry = function() {
     var map = store.getMap('index1', 'type5');
+    map.clear();
 
     var result = false;
 
@@ -278,10 +295,12 @@ exports.testMapListenerUpdateEntry = function() {
     java.lang.Thread.sleep(1000);
     assert.isTrue(result);
     map.remove('1');
+    map.clearEntryListeners();
 };
 
 exports.testMapListenerEvictEntry = function() {
     var map = store.getMap('index1', 'type6');
+    map.clear();
 
     var result = false;
 
@@ -290,8 +309,8 @@ exports.testMapListenerEvictEntry = function() {
         name: module.id,
         entryEvicted: function(entry) {
             try {
-                assert.equal(typeof entry.value, 'object');
-                assert.equal(entry.value.name, 'fred');
+                assert.equal(typeof entry.oldValue, 'object');
+                assert.equal(entry.oldValue.name, 'fred');
                 result = true;
             } catch(e) {
                 log.info('Error: ', e);
@@ -305,6 +324,7 @@ exports.testMapListenerEvictEntry = function() {
     map.evict('1');
     java.lang.Thread.sleep(1000);
     assert.isTrue(result);
+    map.clearEntryListeners();
 };
 
 exports.testRegisterListener = function() {
@@ -316,6 +336,7 @@ exports.testRegisterListener = function() {
     });
 
     var map = store.getMap('index2', 'type1');
+    map.clear();
 
     assert.equal(result, 0);
     map.put('1', {name: 'fred'});
@@ -341,6 +362,7 @@ exports.testStoreRegMultIndex = function() {
     });
 
     var map1 = store.getMap('index3', 'type1');
+
     map1.put('1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
@@ -361,6 +383,7 @@ exports.testStoreRegMultType = function() {
     });
 
     var map1 = store.getMap('index4', 'type1');
+
     map1.put('testStoreRegMultType1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
@@ -381,21 +404,25 @@ exports.testStoreRegMultis = function() {
     });
 
     var map1 = store.getMap('index3', 'type1');
+
     map1.put('testStoreRegMultis1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
 
     var map2 = store.getMap('index3', 'type2');
+
     map2.put('testStoreRegMultis2', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 2);
 
     var map3 = store.getMap('index4', 'type1');
+
     map3.put('testStoreRegMultis3', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 3);
 
     var map4 = store.getMap('index4', 'type2');
+
     map4.put('testStoreRegMultis4', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 4);
@@ -411,21 +438,25 @@ exports.testStoreRegNullIndex = function() {
     });
 
     var map1 = store.getMap('index3', 'type1');
+
     map1.put('testStoreRegNullIndex1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
 
     var map2 = store.getMap('index3', 'type2');
+
     map2.put('testStoreRegNullIndex2', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 2);
 
     var map3 = store.getMap('index4', 'type1');
+
     map3.put('testStoreRegNullIndex3', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 3);
 
     var map4 = store.getMap('index4', 'type2');
+
     map4.put('testStoreRegNullIndex4', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 4);
@@ -441,11 +472,13 @@ exports.testStoreRegNullType = function() {
     });
 
     var map1 = store.getMap('index3', 'type1');
+
     map1.put('testStoreRegNullType1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
 
     var map2 = store.getMap('index3', 'type2');
+
     map2.put('testStoreRegNullType2', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 2);
@@ -461,21 +494,25 @@ exports.testStoreRegNulls = function() {
     });
 
     var map1 = store.getMap('index3', 'type1');
+
     map1.put('testStoreRegNulls1', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 1);
 
     var map2 = store.getMap('index3', 'type2');
+
     map2.put('testStoreRegNulls2', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 2);
 
     var map3 = store.getMap('index4', 'type1');
+
     map3.put('testStoreRegNulls3', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 3);
 
     var map4 = store.getMap('index4', 'type2');
+
     map4.put('testStoreRegNulls4', {name: 'fred'});
     java.lang.Thread.sleep(1000);
     assert.equal(result, 4);
@@ -517,8 +554,6 @@ exports.testMapListenerDupeEntries = function() {
     java.lang.Thread.sleep(1000);
     assert.equal(result, 2);
 };
-
-
 
 // start the test runner if we're called directly from command line
 if (require.main == module.id) {

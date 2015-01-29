@@ -2,7 +2,7 @@ package com.transcordia.platform.hazelcast.persistence.elasticsearch;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.transcordia.platform.hazelcast.persistence.MapPersistence;
-import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -146,7 +146,7 @@ public class ElasticSearchMapPersistence implements MapPersistence {
 
         try {
             _esClient.delete(request).actionGet();
-        } catch (ElasticSearchException e) {
+        } catch (ElasticsearchException e) {
             LOG.warn("Failed to delete, index [{}], type [[]], key [{}]",
                     new Object[]{_index, _type, key}, e);
         }
@@ -207,7 +207,7 @@ public class ElasticSearchMapPersistence implements MapPersistence {
 
         try {
             _esClient.index(builder.request()).actionGet();
-        } catch (ElasticSearchException e) {
+        } catch (ElasticsearchException e) {
             LOG.warn(String.format("Failed to index, index [%s], type [%s], key [%s], value [%s]",
                     _index, _type, key, value), e);
             throw e;

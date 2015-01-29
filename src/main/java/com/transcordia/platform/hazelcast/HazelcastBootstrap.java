@@ -17,7 +17,7 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,14 +60,14 @@ public class HazelcastBootstrap {
 
         final Config config = generateConfig();
         addMapStoreFactory(config, _mapStoreFactory);
-        _hazelcast = Hazelcast.init(config);
+        _hazelcast = Hazelcast.newHazelcastInstance(config);
 
 
         if (LOG.isInfoEnabled()) {
             final StringBuilder sb = new StringBuilder();
             final Set<Member> members = _hazelcast.getCluster().getMembers();
             for (Member member : members) {
-                final InetAddress address = member.getInetAddress();
+                final InetSocketAddress address = member.getSocketAddress();
                 sb.append(address.toString()).append(", ");
             }
             if (members.size() > 0) {
@@ -130,14 +130,12 @@ public class HazelcastBootstrap {
     protected List<String> getClusterIPAddresses() {
         // Perform a cluster health check to get the nodes in the cluster
         ClusterStateResponse response = _esClient.admin().cluster().prepareState()
-                .setFilterMetaData(true)
-                .setFilterRoutingTable(true)
                 .execute().actionGet();
 
         final ArrayList<String> result = new ArrayList<String>();
 
         // This is the list of cluster nodes
-        final DiscoveryNodes nodes = response.state().getNodes();
+        final DiscoveryNodes nodes = response.getState().getNodes();
         for (DiscoveryNode node : nodes) {
             // There should be one data node per deployed web application
             if (node.isDataNode()) {
